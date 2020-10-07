@@ -1,0 +1,438 @@
+---
+title: "TP 1"
+subtitle: "Calculer une posterior"
+author: "Argmax"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(gradethis)
+
+knitr::opts_chunk$set(echo = FALSE, exercise.checker = gradethis::grade_learnr, 
+                      exercise.warn_invisible = FALSE)
+knitr::opts_knit$set(progress = TRUE, verbose = TRUE)
+```
+
+
+# Calcul d'une posterior
+
+## Loi beta et Bernoulli
+
+Dans ce premier exercice, nous cherchons à déterminer la loi *a posteriori* de la probabilité d'obtenir pile après avoir observé un certain nombre de tirages (cet abus de langage est dû au fait que le paramètre de la Bernoulli s'interprète comme la probabilité de l'évènnement "1"). 
+
+Le modèle est $\mathcal{M}=\{Be(\theta), \theta\in[0,1]\}$. Il s'agit dans un premier temps de munir $\{\Theta, \mathcal{F}\}$, l'espace probabilisable des paramètres, d'une mesure dite *loi a priori* :
+\begin{equation*}
+\pi(\theta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}\theta^{\alpha-1}(1-\theta)^{\beta-1}, \theta\in[0,1], \alpha,\beta\in]0,+\infty[
+\end{equation*}
+où $\alpha$ et $\beta$ sont les hyper-paramètres.
+
+<span style="color:red">Question : </span> calculer la *loi a posteriori* de $\theta$ à un facteur proportionnel près.
+
+```{r question, echo=FALSE}
+question(sprintf("Soit $\\alpha_0=1, \\beta_0=1, N=100, k=48$, quelles sont les valeurs de $\\alpha^\\prime, \\beta^\\prime$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\alpha^\\prime=53, \\beta^\\prime=49$", correct = TRUE),
+         answer("$\\alpha^\\prime=52, \\beta^\\prime=48$"),
+         answer("$\\alpha^\\prime=1, \\beta^\\prime=1$"),
+         answer("$\\alpha^\\prime=1012, \\beta^\\prime=\\pi$"),
+         post_message = sprintf("<span style=\"color:green\">Réponse : </span>
+La loi a posteriori s'obtient à un facteur proportionnel près en multipliant la loi a priori avec la vraissemblance. Soit $N$ le nombre de tirage total et $m$ le nombre de fois où la pièce est tombée sur pile. On a donc $N-m$ faces. Notons $\\mathcal{D}=\\{x_i\\}_{i\\leq N}\\in \\{0,1\\}^N$ nos tirages.
+
+Soit le paramètre $\\theta$, la vraissemblance de notre modèle est donnée par :
+$$\\mathcal{L}(\\mathcal{D})=\\prod_{i=1}^N \\theta^{x_i}(1-\\theta)^{1-x_i}=\\theta^{m}(1-\\theta)^{N-m}$$
+La posterior est ainsi donnée par
+
+$$\\Pi(\\theta|\\mathcal{D};\\alpha_0,\\beta_0)\\propto\\theta^{\\alpha_0+m-1}(1-\\theta)^{\\beta_0+N-m-1}$$
+
+On retrouve une loi Beta de paramètres $\\alpha^\\prime=\\alpha_0+m$ et $\\beta^\\prime=\\beta_0+N-m$.")
+)
+```
+
+<span style="color:red">Exercice : </span> Calculer la densité de la loi *a priori* correspondants au support i.
+
+
+
+
+```{r, include = TRUE, echo = TRUE}
+i <- seq(0, 1, 1/1000)
+```
+
+```{r plot_prior-setup, include = FALSE, echo = FALSE}
+i <- seq(0, 1, 1/1000)
+```
+
+```{r plot_prior, exercise=TRUE}
+prior <-
+```
+
+```{r plot_prior-hint}
+prior <- dbeta(...)
+```
+
+```{r plot_prior-solution}
+prior <- dbeta(i, 1, 1)
+```
+
+```{r plot_prior-check}
+grade_code("Good job. Don't worry, things will soon get harder.")
+```
+
+<span style="color:red">Exercice : </span> Calculer la densité de la loi *a posteriori* correspondants au support i.
+```{r, include = TRUE, echo = TRUE}
+i <- seq(0, 1, 1/1000)
+```
+
+
+```{r plot_posterior-setup, include = FALSE, echo = FALSE}
+i <- seq(0, 1, 1/1000)
+```
+
+```{r plot_posterior, exercise=TRUE}
+posterior <- 
+```
+
+```{r plot_posterior-hint}
+posterior <- dbeta(...)
+```
+
+```{r plot_posterior-solution}
+posterior <- dbeta(i, 53, 49)
+```
+
+```{r plot_posterior-check}
+grade_code("Facile !")
+```
+<span style="color:red">Exercice : </span> Simulez 1000 échantillons selon la même loi.
+```{r beta_samples, exercise=TRUE}
+samples <- 
+```
+
+```{r beta_samples-hint}
+samples <- rbeta(...)
+```
+
+```{r beta_samples-solution}
+samples <- rbeta(1000, 53, 49)
+```
+
+```{r beta_samples-check}
+grade_code("Ooh yeah !")
+```
+
+<span style="color:red">Exercice : </span> Afficher la loi *a priori*, la loi *a posteriori* et l'histogramme des tirages aléatoires sur un même ggplot. Attention, lorsque vous passez un indice, vous ne pouvez pas revenir dessus !
+
+
+```{r plot_posterior_prior-setup, include = FALSE, echo = TRUE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+
+i <- seq(0, 1, 1/1000)
+
+prior <- dbeta(i, 1, 1)
+posterior <- dbeta(i, 53, 49)
+samples <- rbeta(1000, 53, 49)
+```
+
+```{r plot_posterior_prior, exercise=TRUE}
+ggplot(....) + ...
+```
+
+```{r plot_posterior_prior-hint-1}
+densities <- data.frame(x=...., y=....) %>% 
+  tidyr::pivot_longer(cols=-x, names_to='type', values_to='value', values_drop_na=TRUE)
+```
+
+
+```{r plot_posterior_prior-hint-2}
+tirages_p <- data.frame(samples=..., name='...')
+```
+
+```{r plot_posterior_prior-hint-3}
+ggplot() + 
+  geom_histogram(data=..., mapping=...) +
+  geom_line(data=..., mappint=...) +
+  labs(title='Samples vs density') +
+  theme_bw() +
+  xlab('x')
+```
+
+```{r plot_posterior_prior-solution}
+densities <- data.frame(x = i, Prior = prior, Posterior = posterior) %>% 
+  tidyr::pivot_longer(cols=-x, names_to='type', values_to='value', values_drop_na=TRUE)
+
+tirages_p <- data.frame(samples = samples, name = 'Samples')
+
+ggplot() + 
+  geom_histogram(data = tirages_p, mapping = aes(samples, y = ..density.., fill=factor(name)), 
+                 alpha = 0.5, color = 'red', position = 'identity', bins = 30) +
+  geom_line(data = densities, mapping = aes(x = x, y = value, color=factor(type)), 
+            alpha = 0.8) +
+  labs(title = 'Samples vs density') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+
+## Loi de Poisson et loi gamma
+
+On cherche à présent à compter les cigales présentes sur un terrain immense. Pour cela, on divise le terrain en 200 parcelles. La première année, trois parcelles sont parcourues, et on y recense les cigales. On obtient 63, 75 et 58 cigales. Il s'agit, à partir de ces résultats, de déterminer la loi du nombre de cigales sur le terrain.
+
+Une loi fréquemment utilisée lorsqu'il s'agit de compter est la loi de poisson :
+\begin{equation*}
+P(X=k)=\frac{\lambda^k}{k!}e^{-\lambda}, k\in\mathbb{N^+}, \lambda\in]0, +\infty[
+\end{equation*}
+
+```{r poisson-distribution, include = TRUE, echo = TRUE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+
+data <- data.frame(x=seq(0, 30, 1), y=dpois(seq(0, 30, 1), 8))
+
+ggplot(data=data, mapping = aes(x = x, y = y)) + 
+  geom_point(alpha = 0.8) +
+  labs(title = 'Loi de Poisson') +
+  theme_bw()
+```
+
+
+Comme précédemment, il s'agit dans un premier temps de munir l'espace des paramètres d'une loi *a priori* que l'on choisit conjuguée : la loi Gamma.
+Celle-ci possède la densité suivante :
+\begin{equation*}
+\pi(\lambda)=\frac{\lambda^{k-1}e^{-\frac{\lambda}{\theta}}}{\Gamma(k)\theta^k}, k,\theta\in]0,+\infty[, \lambda\in[0,+\infty[
+\end{equation*}
+où $\theta$ et $k$ sont les hyper-paramètres. Notez que la loi Gamma est également utilisée avec d'autres paramétrisations (cf. wikipedia)...
+
+
+
+```{r gamma-distribution, include = TRUE, echo = TRUE}
+data <- data.frame(x=seq(0, 200, 2/10), y=dgamma(seq(0, 200, 2/10), shape=3, scale=15))
+
+ggplot(data=data, mapping = aes(x = x, y = y)) + 
+  geom_line(alpha = 0.8) +
+  labs(title = 'Loi gamma') +
+  theme_bw()
+```
+
+<span style="color:red">Question 1 : </span> calculer la *loi a posteriori* de $\theta$ à un facteur proportionnel près pour les parcelles données. On suppose $k_0=3$ et $\theta_0=15$.
+
+```{r question-gamma, echo=FALSE}
+question(sprintf("Soit $k_0=3, \\theta_0=15$ (shape et scale) et les observations suivantes : 63, 75, 58. Quelles sont les valeurs des paramètres $k^\\prime, \\theta^\\prime$ de la loi a posteriori ?"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$k^\\prime=199, \\theta^\\prime=18$"),
+         answer("$k^\\prime=199, \\theta^\\prime=15/46$", correct = TRUE),
+         answer("$k^\\prime=6, \\theta^\\prime=15/46$"),
+         answer("$k^\\prime=6, \\theta^\\prime=18$"),
+         post_message = sprintf("<span style=\"color:green\">Réponse : </span> Soit $\\mathcal{D}=\\{x_i\\}_{i\\leq N}$ nos comptes pour $N$ parcelles. Ici, nous avions 63, 75 et 58. La vraissemblance obtenue est donc :
+$$\\mathcal{L}(\\mathcal{D})=\\prod_{i=1}^N \\frac{\\lambda^{x_i}}{x_i!}e^{-\\lambda}$$
+Cela nous mène à notre loi *a posteriori* :
+$$\\Pi(\\lambda|\\mathcal{D};\\theta,k)=\\prod_{i=1}^N\\Big[ \\frac{\\lambda^{x_i}}{x_i!}e^{-\\lambda}\\Big]\\frac{\\lambda^{k-1}e^{-\\frac{\\lambda}{\\theta}}}{\\Gamma(k)\\theta^k}\\propto\\lambda^{\\sum_i[x_i]+k-1}e^{-\\lambda(N+1/\\theta)}$$
+
+On retrouve une loi gamma de paramètres $k^\\prime=\\sum_i[x_i]+k$ et $\\theta^\\prime=\\theta/(N\\theta+1).$")
+)
+```
+
+<span style="color:red">Question 2 :</span> affichez la densité de la loi *a priori* et *a posteriori* pour le support $x$. On suppose $k_0=3$ et $\theta_0=15$.
+
+```{r gamma-x, include = TRUE, echo = TRUE}
+x <- seq(0, 200, 2/10)
+```
+
+```{r gamma-prior-exercice, exercise=TRUE}
+prior <-
+```
+
+```{r gamma-prior-exercice-hint}
+dgamma
+```
+
+```{r gamma-prior-exercice-solution}
+prior <- dgamma(seq(0, 200, 2/10), shape=3, scale=15)
+```
+
+
+
+```{r gamma-prior-exercice-check}
+grade_code("Ooh yeah !")
+```
+
+```{r gamma-posterior-exercice, exercise=TRUE}
+posterior <-
+```
+
+```{r gamma-posterior-exercice-hint}
+dgamma
+```
+
+```{r gamma-posterior-exercice-solution}
+posterior <- dgamma(seq(0, 200, 2/10), shape=199, scale=15/46)
+```
+
+
+
+```{r gamma-posterior-exercice-check}
+grade_code("Ooh yeah !")
+```
+
+```{r gamma_plot, exercise = TRUE}
+# le plot
+```
+
+```{r gamma_plot-setup, include = FALSE, echo = TRUE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+
+x <- seq(0, 200, 2/10)
+
+prior <- dgamma(seq(0, 200, 2/10), shape=3, scale=15)
+posterior <- dgamma(seq(0, 200, 2/10), shape=199, scale=15/46)
+```
+
+
+
+```{r gamma_plot-hint-1}
+densities <- data.frame() %>% 
+  tidyr::pivot_longer()
+```
+
+```{r gamma_plot-hint-2}
+ggplot() + 
+  geom_line(...) +
+  labs(title = 'Gamma density') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+
+```{r gamma_plot-solution}
+densities <- data.frame(x = x, Prior = prior, Posterior = posterior) %>% 
+  tidyr::pivot_longer(cols=-x, names_to='type', values_to='y', values_drop_na=TRUE)
+
+ggplot() + 
+  geom_line(data = densities, mapping = aes(x = x, y = y, color=factor(type)), 
+            alpha = 0.8) +
+  labs(title = 'Gamma density') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+
+<span style="color:red">Question 3 : </span> Quelle est la loi du terrain entier (indice : cf. wikipedia) ? Afficher la densité *a priori* et *a posteriori* du terrain entier.
+
+```{r gamma_full_plot, exercise = TRUE}
+
+```
+
+
+<div id="gamma_full_plot-hint">
+<span style="color:green">Réponse 3 : </span> Soit $X_i$ un ensemble de variables aléatoire suivant une loi gamma de paramètre $k$ et $\theta$. La loi de $Y=\sum_iX_i$ est une loi gamma de paramètres $k^\prime=\sum_i k$ et $\theta^\prime=\theta$.
+</div>
+
+```{r gamma_full_plot-setup, include = FALSE, echo = TRUE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+```
+
+```{r gamma_full_plot-solution}
+x <- seq(8000, 14000, 1)
+densities <- data.frame(
+  x=x,
+  prior=dgamma(x, shape=3 * 200, scale=15),
+  posterior=dgamma(x, shape=199*200, scale=15/46)
+) %>% tidyr::pivot_longer(cols=-x, names_to='type', values_to='y', values_drop_na=TRUE)
+
+ggplot() + 
+  geom_line(data = densities, mapping = aes(x = x, y = y, color=factor(type)), 
+            alpha = 0.8) +
+  labs(title = 'Gamma density on the whole field') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+
+## Loi normale et loi normale
+Dans ce troisième exercice, nous allons réaliser des relevés de températures. Ici, la loi normale de moyenne à déterminer mais de variance connue sera utilisée : $\mathcal{N}(\mu, \sigma^2)$. Une mesure *a priori* est la loi normale elle-même :
+\begin{equation*}
+\pi(\mu)=\mathcal{N}(\mu_0, \sigma_0^2),\mu_0\in\mathbb{R}, \sigma_0\in\mathbb{R}^+
+\end{equation*}
+Rappelons dans un premier temps la forme de la loi normale :
+$$f(x;\mu,\sigma)=\frac{1}{\sqrt{2\pi\sigma^2}}\textrm{exp}\Big(-\frac{(x-\mu)^2}{2\sigma^2}\Big).$$
+
+<span style="color:red">Question 1 : </span> Sachant que nous avons relevé les valeurs $22$, $23.5$, $22$, $24.5$, $25$, proposez une loi *a posteriori* et affichez la densité de la loi *a priori* et *a posteriori*.
+
+
+```{r question-gaussian, echo=FALSE}
+question(sprintf("Soit $\\mu_0=15, \\sigma_0=10, \\sigma=3$, quelles sont les valeurs de $\\mu^\\prime, \\sigma^\\prime$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\sigma^\\prime\\approx 1.33, \\mu^\\prime\\approx 23.25$", correct = TRUE),
+         answer("$\\sigma^\\prime\\approx 1.53, \\mu^\\prime\\approx 18.25$"),
+         answer("$\\sigma^\\prime\\approx 1.83, \\mu^\\prime\\approx 22.25$"),
+         answer("$\\sigma^\\prime\\approx 0.87, \\mu^\\prime\\approx 22.55$"),
+         post_message = sprintf("<span style=\"color:green\">Réponse : </span> Soit $\\mathcal{D}=\\{x_i\\}_{i\\leq N}$ notre jeu de données. La vraissemblance est définie par
+$$\\mathcal{L}(\\mathcal{D})=\\prod_{i=1}^Nf(x_i;\\mu,\\sigma)\\propto \\prod_{i=1}^N \\textrm{exp}\\Big(-\\frac{1}{2}\\frac{(x_i-\\mu)^2}{\\sigma^2}\\Big)$$
+
+La loi *a posteriori* nous est donc donnée par
+$$\\Pi(\\mu|\\mathcal{D};\\sigma,\\sigma_0,\\mu_0)\\propto\\Big[\\prod_{i=1}^N \\textrm{exp}\\Big(-\\frac{1}{2}\\frac{(x_i-\\mu)^2}{\\sigma^2}\\Big)\\Big]\\textrm{exp}\\Big(-\\frac{1}{2}\\frac{(\\mu-\\mu_0)^2}{\\sigma_0^2}\\Big)=\\textrm{exp}\\Bigg(-\\frac{1}{2}\\Big(\\frac{(\\mu-\\mu_0)^2}{\\sigma_0^2}+\\sum_i\\frac{(x_i-\\mu)^2}{\\sigma^2}\\Big)\\Bigg)$$
+
+Concentrons nous sur la partie dans l'exponentielle (passage au log) que nous notons $(\\star)$. En développant les carrés, nous obtenons :
+
+$$(\\star)=-\\frac{1}{2}\\Bigg(\\frac{\\mu^2-2\\mu\\mu_0+\\mu_0^2}{\\sigma_0^2}+\\frac{\\sum_i x_i^2-2x_i\\mu+\\mu^2}{\\sigma^2}\\Bigg).$$
+
+Afin de simplifier les calculs, remarquons que \"l'opérateur\" de proportionnalité devient la somme en log : 
+$$(\\star)\\propto -\\frac{1}{2}\\Bigg(\\frac{\\mu^2-2\\mu\\mu_0}{\\sigma_0^2}+\\frac{\\sum_i-2x_i\\mu+\\mu^2}{\\sigma^2}\\Bigg)=-\\frac{1}{2}\\Bigg(\\frac{\\mu^2-2\\mu\\mu_0}{\\sigma_0^2}+\\frac{-2N\\overline{x}\\mu+N\\mu^2}{\\sigma^2}\\Bigg).$$
+
+Factorisons par $\\mu^2$ et par $\\mu$ :
+$$(\\star)\\propto -\\frac{1}{2}\\Bigg(\\mu^2\\big(\\frac{1}{\\sigma_0^2}+\\frac{N}{\\sigma^2}\\Big)-2\\mu\\big(\\frac{N\\overline{x}}{\\sigma^2}+\\frac{\\mu_0}{\\sigma_0^2}\\big)\\Bigg).$$
+Nous savons grâce à la conjugaison que le résultat doit être de la forme $-1(\\mu-\\mu^\\prime)^2/2{\\sigma^\\prime}^2$. Cela nous donne :
+$${\\sigma^\\prime}^2=\\Big(\\frac{N}{\\sigma^2}+\\frac{1}{\\sigma_0^2}\\Big)^{-1}=\\frac{\\sigma^2\\sigma_0^2}{N\\sigma_0^2+\\sigma^2}\\textrm{ et }\\frac{\\mu^\\prime}{{\\sigma^\\prime}^2}=\\frac{N\\overline{x}}{\\sigma^2}+\\frac{\\mu_0}{\\sigma_0^2}\\Leftrightarrow \\mu^\\prime=\\frac{N\\sigma_0^2}{N\\sigma_0^2+\\sigma^2}\\overline{x}+\\frac{\\sigma^2}{N\\sigma_0^2+\\sigma^2}\\mu_0$$
+Nous obtenons donc une nouvelle loi normale de paramètres $\\mu^\\prime$ et ${\\sigma^\\prime}^2$.")
+)
+```
+
+```{r plot-gaussian-setup, include = FALSE, echo = TRUE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+library(tidyr, quietly = TRUE)
+```
+
+<span style="color:red">Question 2 : </span> Affichez dans ggplot la loi a priori et a posteriori.
+
+```{r plot-gaussian, exercise = TRUE}
+
+
+```
+
+```{r plot-gaussian-solution}
+avg = (22+23.5+22+24.5)/4
+N=4
+sigma_0=10
+sigma=3
+mu_0=15
+
+mu_prime <- N*sigma_0^2/(N*sigma_0^2+sigma^2)*avg+sigma^2/(N*sigma_0^2+sigma^2)*mu_0
+sigma_prime <- sigma^2*sigma_0^2/(N*sigma_0^2+sigma^2)
+x <- seq(-5, 35, 0.1)
+prior <- dnorm(x, mean=mu_0, sd=sigma_0)
+posterior <- dnorm(x, mean=mu_prime, sd=sigma_prime)
+
+densities <- data.frame(
+  x=x,
+  prior=prior,
+  posterior=posterior
+) %>% tidyr::pivot_longer(cols=-x, names_to='type', values_to='y', values_drop_na=TRUE)
+
+ggplot() + 
+  geom_line(data = densities, mapping = aes(x = x, y = y, color=factor(type)), 
+            alpha = 0.8) +
+  labs(title = 'Normal density') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
