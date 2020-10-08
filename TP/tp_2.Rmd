@@ -1,0 +1,276 @@
+---
+title: "TP 2"
+subtitle: "Monte Carlo"
+author: "Argmax, son of Clodomir"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(gradethis)
+
+knitr::opts_chunk$set(echo = FALSE, exercise.checker = gradethis::grade_learnr, 
+                      exercise.warn_invisible = FALSE)
+knitr::opts_knit$set(progress = TRUE, verbose = TRUE)
+```
+
+
+# Introduction aux méthodes de Monte Carlo
+
+## Calcul de $\pi$
+Monte Carlo est un quartier de Monaco connu pour son casino et ses jeux de hasards. Les méthodes de Monte Carlo lui font ainsi référence en ce sens qu'elles permettent d'estimer certaines quantités par tirages aléatoires. Elles s'appuient donc sur le hasard.
+
+Ce premier exercice se propose de calculer $\pi$ suivant une approche de type Monte Carlo. On se rappelle que $\pi$ est le rapport de la circonférence du cercle sur le diamètre. On le retrouve dans de nombreuses formules et notamment dans le calcul de l'aire d'un cercle :
+$$Aire(r)=\pi r^2$$
+où $r$ est le rayon du cercle.<br/>
+
+<span style="color:red">Question 1 : </span>Proposez une méthode stochastique permettant d'approcher la valeur de $\pi$.
+```{r estimate_pi, exercise = TRUE}
+```
+
+<div id="estimate_pi-hint">
+Un cercle de rayon $r$ est défini par le graphe $\{(x,y): \sqrt{x^2+y^2}=r\}$. Considérons le cercle de rayon $1$ et donc d'aire $\pi$. La fonction $f(x)=\sqrt{1-x^2}$ définie sur $x\in[0,1]$ défini le quart de cercle droit supérieur. <br/>
+
+<span style="color:blue">Preuve</span> Le graphe défini par cette fonction est :
+$$(x, f(x))=(x, \sqrt{1-x^2}).$$
+De plus,
+$$\sqrt{x^2+\sqrt{1-x^2}^2}=\sqrt{x^2+1-x^2}=\sqrt{1}=1=r.$$
+(On considère le cercle de rayon $1$).
+Ce qui conclut la preuve. $\blacksquare$
+
+Son aire est donc égale à $\pi/4$. Considérons maintenant le carré $[0,1]\times[0,1]$ d'aire évidemment $1$. Le ratio d'aire entre le cercle et le carré est donc $\pi/4$. 
+
+La procédure est la suivante : échantilloner uniformément dans le carré (x et y uniformément sur [0,1]) et compter le nombre de points qui se trouvent dans le cercle ($x^2+y^2<1$). Le ratio ainsi obtenu donnera $\pi/4$. Il suffit de le multiplier par $4$ pour obtenir $\pi$.
+```{r include = TRUE, echo = TRUE, message = FALSE}
+library(tidyverse, quietly = TRUE)
+
+N = 1000
+samples <- data.frame(x=runif(N, 0, 1), y=runif(N, 0, 1))
+
+samples <- samples %>% 
+  mutate(
+    circle = if_else(x**2 + y**2 < 1, 'in', 'out')
+  )
+
+circle <- data.frame(x=seq(0,1, 0.001), y=sqrt(1-seq(0,1,0.001)**2))
+
+
+ggplot(data = samples, mapping = aes(x=x, y=y, colour=circle)) +
+  geom_point() +
+  geom_line(data=circle, colour="black") +
+  labs(title = 'Monte Carlo') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+</div>
+
+```{r estimate_pi-solution, echo=FALSE, include=FALSE}
+# la base de Monte carlo est le tirage aléatoire
+N = 1000
+samples <- data.frame(x=runif(N, 0, 1), y=runif(N, 0, 1))
+
+computed_pi <- samples %>% 
+  mutate(circle = if_else(x**2 + y**2 < 1, 'in', 'out')) %>% 
+  summarise(pi=sum(circle == "in")/n()) * 4
+  
+computed_pi
+```
+
+<span style="color:blue">
+Remarque :
+</span> Calculer l'aire d'un cercle (et donc l'échantillonage précédent) revient à calculer l'intégrale suivante :
+$$Aire(C)=\int_C 1dxdy=\int_0^1\int_0^{\sqrt{1-y^2}}1dxdy=\int_0^1\sqrt{1-y^2}dy.$$
+<span style="color:red">Question 2 : </span>Trouvez la solution de l'intégrale précédente.
+```{r question, echo=FALSE}
+question(sprintf("Solution de l'intégrale $\\int_0^1\\sqrt{1-y^2}dy$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\frac{1}{2}\\big[\\theta\\big]^{\\pi/2}_0+\\big[\\frac{sin(2\\theta)}{2}\\big]_0^{\\pi/2}$", correct = TRUE),
+         answer("$\\frac{\\pi}{2}\\big[\\theta\\big]^{1/2}_{-1/2}$"),
+         answer("$\\frac{1}{2}\\big[sin(\\theta)\\big]^{\\pi/2}_0+\\big[\\frac{cos(2\\theta)}{2}\\big]_0^{\\pi/2}$"),
+         answer("$\\frac{1}{2}\\big[cos(\\theta)^2\\big]^{\\pi/2}_0+\\big[\\frac{sin(2\\theta)}{2}\\big]_0^{\\pi/2}$"),
+         post_message = sprintf("<span style=\"color:green\">Réponse : </span>
+                                Commençons par un changement de variable : $y=sin\\theta$, $dy=cos\\theta d\\theta$. On obtient l'intégrale $$\\int_0^1\\sqrt{1-y^2}dy=\\int_0^{\\pi/2}\\sqrt{1-sin(\\theta)^2}cos\\theta d\\theta=\\int_0^{\\pi/2}cos(\\theta)^2 d\\theta.$$
+                                Notons que $cos(x)^2=\\frac{1}{2}(1+cos(2x))$. Cela nous mène à l'intégrale :
+$$\\int_0^{\\pi/2}cos(\\theta)^2 d\\theta=\\frac{1}{2}\\int_0^{\\pi/2}1 +cos(2\\theta) d\\theta,$$
+Cette intégrale peut maintenant être calculée :
+$$\\frac{1}{2}\\int_0^{\\pi/2}1 +cos(2\\theta) d\\theta = \\frac{1}{2}\\big[\\theta\\big]^{\\pi/2}_0+\\big[\\frac{sin(2\\theta)}{2}\\big]_0^{\\pi/2}=\\frac{1}{2}\\big[\\theta\\big]^{\\pi/2}_0=\\frac{\\pi}{4}.$$
+
+Autrement dit les méthodes de Monte Carlo permettent de résoudre des intégrales numériquement sans nécessairement se poser de questions analytiques complexes. En effet, autant dériver une fonction est un exercice facile, autant l'intégrer peut s'avérer périlleux.
+                                ")
+)
+```
+
+## Espérance et probabilité
+La majorité des calculs en probabilité impliquent des intégrales. On a par exemple :
+$$\mathbb{E}[g(X)]=\int_{\mathcal{X}}g(x)f(x)dx$$
+où $g$ est une fonction "mesurable", $f$ est la densité de $X$ par rapport à la mesure de Lebesgue et $X\in\mathcal{X}$.
+
+<span style="color:red">Question 1 : </span> Soit une loi normale $\mathcal{N}(0,1)$, tracer un histogramme pour un échantillon de taille $1000$.
+
+
+```{r hist_N01, exercise = TRUE}
+
+```
+
+```{r hist_N01-steup}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+```
+
+```{r hist_N01-hint-1}
+X <- data.frame(samples=rnorm(1000, 0, 1))
+```
+
+```{r hist_N01-hint-2}
+ggplot(...) + 
+  geom_histogram(...) +
+  labs(title = 'Échantillons du modèle gaussien') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+
+```{r hist_N01-solution}
+X <- data.frame(samples=rnorm(1000, 0, 1))
+
+ggplot(data = X, mapping = aes(samples, y = ..density..)) + 
+  geom_histogram(alpha = 0.5, color = 'black', position = 'identity', bins = 30) +
+  labs(title = 'Échantillons du modèle gaussien') +
+  theme_bw() +
+  xlab('x') +
+  theme(legend.title = element_blank())
+```
+<span style="color:red">Question 2 : </span> En vous appuyant sur l'échantillon précédent, calculer son espérance empirique, sa variance (avec et sans biais). La fonction ```R``` ```var``` est-elle avec ou sans biais (justifiez) ?
+
+```{r my_variance, exercise = TRUE}
+
+```
+
+
+```{r my_variance-solution}
+X <- data.frame(samples=rnorm(1000, 0, 1))
+my_variance <- function(s, unbiased=TRUE) {
+  mu = mean(s);
+  normalization = 1
+  if (unbiased == TRUE) {
+    normalization = (nrow(X) - 1) / nrow(X)
+  }
+  mean((s-mu)**2) / normalization
+}
+
+print(paste('Moyenne empirique:', mean(X$samples)))
+print(paste('Ma variance:', my_variance(X$samples)))
+print(paste('Ma variance (biaisée):', my_variance(X$samples, unbiased=FALSE)))
+print(paste('Variance R:', var(X$samples)))
+```
+
+<span style="color:red">Question 3 : </span> Via notre échantillon, estimer la probabilité de $|X|>2$. 
+
+```{r X_2, exercise = TRUE}
+
+```
+
+<div id="X_2-hint">
+Concernant, la probabilité que $|X|>2$ il s'agit de la solution à l'intégrale suivante~:
+$$\mathbb{P}(|X|>2)=\int_{-\infty}^{-2}f(x)dx + \int_{2}^{\infty}f(x)dx=2\int_{2}^{\infty}f(x)dx$$
+On la calcule en comptant le nombre de fois qu'un tirage satisfait la propriété relativement au nombre total de tirages.
+</div>
+
+```{r X_2-solution}
+N=10000
+X <- data.frame(samples=rnorm(N, 0, 1))
+print(paste('La probabilité empirique est', sum(abs(X)>2)/N))
+```
+```{r question_N01, echo=FALSE}
+question(sprintf("$X\\sim \\mathcal{N}(0,1),P(|X|>2)=$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\approx 5\\%$", correct = TRUE),
+         answer("$\\approx 15\\%$"),
+         answer("$\\approx 10\\%$"),
+         answer("$\\approx 2\\%$"),
+         post_message = sprintf("Lorsque $X\\sim\\mathcal{N}(\\mu,\\sigma^2), P(|X-\\mu|>2\\sigma)\\approx 0.05$.")
+)
+```
+
+<span style="color:red">Question 4 : </span> Via notre échantillon, estimer la probabilité de $|X|>3$.
+```{r question_N02, echo=FALSE}
+question(sprintf("$X\\sim \\mathcal{N}(0,1),P(|X|>3)=$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\approx 5\\%$"),
+         answer("$\\approx 0.26\\%$", correct = TRUE),
+         answer("$\\approx 0.5\\%$"),
+         answer("$\\approx 2\\%$"),
+         post_message = sprintf("Lorsque $X\\sim\\mathcal{N}(\\mu,\\sigma^2), P(|X-\\mu|>3\\sigma)\\approx 0.0026$.")
+)
+```
+
+## Importance Sampling
+<span style="color:red">Question : </span> Soit $f(x;\mu,\sigma^2)$ la densité de la loi normale. Soit $g(x)=\frac{1}{3}(f(x;-3,1)+f(x;0,10)+f(x;1;1))$ notre nouvelle densité. On souhaite, le plus simplement possible, calculer son espérance $\mathbb{E}_{X\sim g}[X]$.
+
+```{r include = TRUE, echo = TRUE}
+density_g <- function(x){
+  (dnorm(x, mean = -3, sd = 1) + dnorm(x, mean = 0, sd = sqrt(10)) + dnorm(x, mean = 1, sd = 1))/3
+}
+```
+
+```{r plot_is, include = TRUE, echo = FALSE}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+density_g <- function(x){
+  (dnorm(x, mean = -3, sd = 1) + dnorm(x, mean = 0, sd = sqrt(10)) + dnorm(x, mean = 1, sd = 1))/3
+}
+
+X <- data.frame(x = seq(-15, 15, 0.1), y = density_g(seq(-15, 15, 0.1)))
+
+ggplot(data = X, mapping = aes(x = x, y = y)) + 
+  geom_line(alpha = 0.5) +
+  labs(title = 'Densité g(x)') +
+  theme_bw()
+```
+
+```{r exercise_importance_sampling, exercise = TRUE}
+
+```
+
+```{r exercise_importance_sampling-setup}
+library(ggplot2, quietly = TRUE)
+library(ggthemes, quietly = TRUE)
+```
+
+
+
+<div id='exercise_importance_sampling-hint'>
+On se souvient que l'espérance de notre variable est donnée par $\mathbb{E}[X]=\int x g(x)dx$, malheureusement, on ne sait pas simuler selon $g(x)$.
+La méthode d'importance sampling consiste à observer $\int x g(x)dx=\int  \frac{g(x)x}{\gamma(x)}\gamma(x)dx=\mathbb{E}_{X\sim \gamma}[xg(x)/\gamma(x)]$ où $\gamma$ est connue et permet de simuler (et ne s'annule nulle part).
+</div>
+
+```{r, exercise_importance_sampling-solution}
+N = 1000
+samples = rnorm(N, mean=0, sd=3)
+m <- mean(samples * density_g(samples)/dnorm(samples, mean=0, sd=3))
+
+print(paste("L'espérance empirique est", m))
+```
+
+```{r question_N03, echo=FALSE}
+question(sprintf("$\\mathbb{E}_{X\\sim g}\\big[X\\big]=$"), 
+         allow_retry = FALSE,
+         random_answer_order = TRUE,
+         answer("$\\approx -0.67$", correct = TRUE),
+         answer("$\\approx -1$"),
+         answer("$\\approx 0$"),
+         answer("$\\approx -1.2$"),
+         answer("Je veux 20 à mon examen"),
+         post_message = sprintf("On cherche l'espérance :
+         $$\\mathbb{E}_{X\\sim g}\\big[X\\big]=\\int x \\frac{1}{3}(\\mathcal{N}(x;-3, 1)+\\mathcal{N}(x;0, 10)+\\mathcal{N}(x;1, 1))dx=$$
+         $$\\Leftrightarrow\\mathbb{E}_{X\\sim g}\\big[X\\big]=\\frac{1}{3}\\big[\\int x\\mathcal{N}(x;-3, 1)dx+\\int x\\mathcal{N}(x;0, 1)dx+\\int x\\mathcal{N}(x;1, 1)dx\\big]$$
+         
+On reconnaît bien sûr l'espérance de chacune des Gaussiennes, ce qui nous donne :
+$\\mathbb{E}_{X\\sim g}\\big[X\\big]=\\frac{1}{3}(-3+0+1)=\\frac{-2}{3}\\approx -0.67$.")
+)
+```
