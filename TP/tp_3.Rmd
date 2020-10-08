@@ -187,7 +187,7 @@ summary(samples)
 ```{r first_jags_prog-setup}
 library(rjags, quietly = TRUE)
 library(coda, quietly = TRUE)
-library(ggmcmc, quietly = TRUE)
+#library(ggmcmc, quietly = TRUE)
 library(ggthemes, quietly = TRUE)
 
 samples <- rbinom(n = 1000, size = 1, prob = 0.78)
