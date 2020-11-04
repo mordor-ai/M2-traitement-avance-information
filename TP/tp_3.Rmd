@@ -35,7 +35,15 @@ En combinant a priori et vraisemblance, nous obtenons :
 
 $$\Pi(\theta|\mathcal{D};\alpha,\beta)\propto\theta^{\alpha+m-1}(1-\alpha)^{\beta+N-m-1},$$
 
-soit une loi Beta de paramètres $\alpha^\prime=\alpha+m$ et $\beta^\prime=\beta+N-m$.
+soit une loi Beta de paramètres 
+
+$\alpha^\prime=\alpha+m$ 
+
+et 
+
+$\beta^\prime=\beta+N-m$
+
+
 
 Supposons que nous ayons la configuration suivantes.
 

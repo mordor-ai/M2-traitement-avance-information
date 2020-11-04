@@ -27,7 +27,7 @@ ggplot(data=X,mapping = aes(x = samples,y = ..density..)) +
 
 # esperance empirique 
 
-
+samples <- rbinom(n = 1000, size = 1, prob = ???)
 
  X <- data.frame(samples=rnorm(10, 0, 1))
 my_variance <- function(s, unbiased=TRUE) {

@@ -1,3 +1,21 @@
+library(rjags)
+library(ggplot2)
+N = 100
+p = 0.75
+samples <- rbinom(n=N, size = 1, prob=p)
+alpha <- N - sum(samples)
+beta <- sum(samples)
+x <- seq(0, 1, 0.001)
+prior <- data.frame(x=x, y=dbeta(x, 1, 1))
+posterior <- data.frame(x=x, y=dbeta(x, alpha + 1, beta + 1))
+
+ggplot() +
+  geom_line(data = prior, mapping = aes(x = x, y = y, color='Prior')) +
+  geom_line(data = posterior, mapping = aes(x = x, y = y, color='Posterior')) +
+  labs(title='Beta prior and posterior', color='Densities') +
+  theme_bw()
+
+
 N = length(samples)
 
 # constructing the model
