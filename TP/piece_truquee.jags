@@ -1,0 +1,12 @@
+
+model {
+    for (i in 1:N) {
+      for (j in 1:M) {
+        x[i, j] ~ dbern(p[t[i]+1])
+      }
+      t[i] ~ dbern(nu)
+    }
+    nu ~ dbeta(1, 1)
+    p[1] ~ dbeta(5, 1)
+    p[2] ~ dbeta(1, 5)
+}
