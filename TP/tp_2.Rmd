@@ -27,6 +27,7 @@ où $r$ est le rayon du cercle.<br/>
 
 <span style="color:red">Question 1 : </span>Proposez une méthode stochastique permettant d'approcher la valeur de $\pi$.
 ```{r estimate_pi, exercise = TRUE}
+
 ```
 
 <div id="estimate_pi-hint">
